@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+
+# Debian post-installation script for abls-agent-imsg
+exit 0

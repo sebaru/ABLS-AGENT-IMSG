@@ -1,0 +1,17 @@
+[Unit]
+Description=ABLS Agent IMSG (%i)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/abls-agent-imsg --agent-tech-id=%i
+DynamicUser=yes
+SupplementaryGroups=abls
+StateDirectory=abls-agent-imsg/%i
+WorkingDirectory=%S/abls-agent-imsg/%i
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
