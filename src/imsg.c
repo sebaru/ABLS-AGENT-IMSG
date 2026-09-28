@@ -35,7 +35,7 @@
     xmpp_message_set_body ( stanza, message );
     xmpp_send ( Agent_vars->conn, stanza );
     xmpp_stanza_release ( stanza );
-    Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_INFO, "Send '%s' to '%s'", message, dest );
+    Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_INFO, "Send '%s' to '%s'", message, dest );
   }
  /******************************************************************************************************************************/
  /* Imsg_send_message_to_all_available: Envoie un message aux utilisateurs disponibles                                         */
@@ -45,7 +45,7 @@
  static void Imsg_send_message_to_all_available ( const gchar *message )
   { JsonNode *UsersNode = Http_Get_from_global_API ( Agent, "/run/users/wanna_be_notified", NULL );
     if (!UsersNode || Json_get_int ( UsersNode, "http_code" ) != 200)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "Could not get USERS from API" );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Could not get USERS from API" );
        if (UsersNode) Json_unref ( UsersNode );
        return;
      }
@@ -56,11 +56,11 @@
      { JsonNode *user = recipients->data;
        gchar *xmpp = Json_get_string ( user, "xmpp" );
        if (!xmpp)
-        { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR,
+        { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR,
                     "User %s does not have an XMPP id", Json_get_string ( user, "email" ) );
         }
        else if (!strlen(xmpp))
-        { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR,
+        { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR,
                     "User %s has an empty XMPP id", Json_get_string ( user, "email" ) );
         }
        else Imsg_send_message_to ( xmpp, message );
@@ -77,7 +77,7 @@
  static int Imsg_handle_message_CB ( xmpp_conn_t *const conn, xmpp_stanza_t *const stanza, void *const userdata )
   { const gchar *from = xmpp_stanza_get_attribute ( stanza, "from" );
     if (!from)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "Missing from" );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Missing from" );
        return(1);
      }
 
@@ -87,26 +87,26 @@
        const gchar *error_type = xmpp_stanza_get_attribute ( error, "type" );
        xmpp_stanza_t *condition = xmpp_stanza_get_children ( error );
        const gchar *condition_name = xmpp_stanza_get_name ( condition );
-       Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR,
+       Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR,
              "From '%s' -> Stanza Error '%s'->'%s'", from, error_type, condition_name );
        return(1);
      }
 
     gchar *message = xmpp_message_get_body ( stanza );
     if (!message)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "From '%s' -> missing message", from );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "From '%s' -> missing message", from );
        gchar *buf; size_t buflen;
        xmpp_stanza_to_text ( stanza, &buf, &buflen );
-       Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "Received stanza '%s'", buf );
+       Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Received stanza '%s'", buf );
        xmpp_free(Agent_vars->ctx, buf);
        return(1);
      }
 
-    Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_NOTICE, "From '%s' -> '%s'", from, message );
+    Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_NOTICE, "From '%s' -> '%s'", from, message );
 
     JsonNode *RootNode = Json_create();
     if (RootNode == NULL)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ALERT, "Memory Error for '%s'", from );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ALERT, "Memory Error for '%s'", from );
        goto end_message;
      }
 
@@ -120,18 +120,18 @@
     JsonNode *UserNode = Http_Post_to_global_API ( Agent, "/run/user/can_send_txt_cde", RootNode );
     Json_unref ( RootNode );
     if (!UserNode || Json_get_int ( UserNode, "http_code" ) != 200)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "Could not get USER from API for '%s'", from );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Could not get USER from API for '%s'", from );
        goto end_user;
      }
 
     if (!Json_has_member ( UserNode, "email" ))
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR,
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR,
              "%s is not a known user. Dropping command '%s'...", from, message );
        goto end_user;
      }
 
     if (!Json_has_member ( UserNode, "can_send_txt_cde" ) || Json_get_bool ( UserNode, "can_send_txt_cde" ) == FALSE)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_WARNING,
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_WARNING,
              "%s ('%s') is not allowed to send txt_cde. Dropping command '%s'...",
              from, Json_get_string ( UserNode, "email" ), message );
        goto end_user;
@@ -144,7 +144,7 @@
 
     RootNode = Json_create();
     if (RootNode == NULL)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "MapNode Error for '%s'", from );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "MapNode Error for '%s'", from );
        goto end_user;
      }
     Json_add_string ( RootNode, "agent_tech_id", "_COMMAND_TEXT" );
@@ -153,12 +153,12 @@
     JsonNode *MapNode = Http_Post_to_global_API ( Agent, "/run/mapping/search_txt", RootNode );
     Json_unref ( RootNode );
     if (!MapNode || Json_get_int ( MapNode, "http_code" ) != 200)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "Could not search mapping for '%s'", message );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Could not search mapping for '%s'", message );
        goto end_map;
      }
 
     if (Json_has_member ( MapNode, "nbr_results" ) == FALSE)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "Error searching Database for user '%s'", from );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Error searching Database for user '%s'", from );
        Imsg_send_message_to ( from, "Error searching Database .. Sorry .." );
        goto end_map;
      }
@@ -176,7 +176,7 @@
           while(results)
            { JsonNode *element = results->data;
              gchar *thread_acronyme = Json_get_string ( element, "thread_acronyme" );
-             Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_INFO,
+             Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_INFO,
                    "Map found for '%s' -> '%s'", from, thread_acronyme );
              Imsg_send_message_to ( from, thread_acronyme );
              results = g_list_next(results);
@@ -186,7 +186,7 @@
         { JsonNode *element = Results->data;
           gchar *tech_id = Json_get_string ( element, "tech_id" );
           gchar *acronyme = Json_get_string ( element, "acronyme" );
-          Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_INFO,
+          Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_INFO,
                 "Map found for '%s' -> '%s:%s'", from, tech_id, acronyme );
           Mqtt_Send_DI_pulse ( Agent, tech_id, acronyme );
           gchar chaine[256];
@@ -252,7 +252,7 @@ end_message:
        xmpp_stanza_set_type( pres, "subscribe" );
        xmpp_send(Agent_vars->conn, pres);
        xmpp_stanza_release(pres);
-       Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_NOTICE, "Sending 'subscribe' to '%s'", from );
+       Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_NOTICE, "Sending 'subscribe' to '%s'", from );
      }
     return(1);
   }
@@ -264,7 +264,7 @@ end_message:
  static void Imsg_connexion_CB ( xmpp_conn_t *const conn, const xmpp_conn_event_t status, const int error,
                                  xmpp_stream_error_t *const stream_error, void *const userdata )
   { if (status == XMPP_CONN_CONNECT)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_NOTICE,
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_NOTICE,
              "Account connected and %s secure", (xmpp_conn_is_secured (conn) ? "IS" : "IS NOT") );
        xmpp_handler_add ( Agent_vars->conn, Imsg_handle_message_CB, NULL, "message", NULL, NULL );
        xmpp_handler_add ( Agent_vars->conn, Imsg_handle_presence_CB, NULL, "presence", NULL, NULL );
@@ -272,7 +272,7 @@ end_message:
        Imsg_send_message_to_all_available ( "Agent démarré. A l'écoute !" );
      }
     else
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_NOTICE, "Account disconnected" );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_NOTICE, "Account disconnected" );
        Agent_vars->signed_off = TRUE;
      }
   }
@@ -287,21 +287,21 @@ end_message:
     Config_add_parameter ( "jabber_password", "PASS", "XMPP password", CONFIG_STRING );
 
     Agent = Agent_init ( argv[0], "imsg", ABLS_AGENT_IMSG_VERSION, sizeof(struct ABLS_IMSG_VARS), argc, argv );
-    Agent_vars = Agent->vars;
+    Agent_vars = Agent_get_vars ( Agent );
 
     Agent_vars->jabber_id       = Agent_config_get_string ( Agent, "jabber_id" );
     Agent_vars->jabber_password = Agent_config_get_string ( Agent, "jabber_password" );
 
     if (!Agent_vars->jabber_id || !Agent_vars->jabber_password)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "Missing jabber_id or password, stopping." );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Missing jabber_id or password, stopping." );
        Agent_end ( Agent );
      }
 
-    Mqtt_subscribe ( Agent->mqtt_local, "SEND_IMSG" );
+    Agent_subscribe_mqtt_local ( Agent, "SEND_IMSG" );
 
     Agent_is_ready ( Agent );
 
-    while (Agent->Agent_run == AGENT_IS_RUNNING)
+    while (Agent_is_running ( Agent ))
      { Agent_loop ( Agent );
 /****************************************************** Ecoute du master ******************************************************/
        JsonNode *mqtt_local_message;
@@ -324,8 +324,8 @@ end_message:
 /****************************************************** Ecoute de l'api *******************************************************/
        JsonNode *mqtt_api_message;
        while ( (mqtt_api_message = Agent_get_mqtt_api_message ( Agent ) ) != NULL )
-        { if ( Mqtt_topic_is ( mqtt_api_message, 4, "+", "AGENT", Agent->agent_tech_id, "TEST" ) )
-           { Info(__func__, Agent->agent_classe, Agent->agent_tech_id, LOG_NOTICE, "Agent Test from API.");
+        { if ( Mqtt_topic_is ( mqtt_api_message, 4, "+", "AGENT", Agent_get_tech_id ( Agent ), "TEST" ) )
+           { Info(__func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_NOTICE, "Agent Test from API.");
              Imsg_send_message_to_all_available ( "Test OK" );
            }
           Json_unref (mqtt_api_message);
@@ -336,12 +336,12 @@ end_message:
         { Agent_vars->signed_off = FALSE;
           Agent_vars->ctx = xmpp_ctx_new(NULL, xmpp_get_default_logger(XMPP_LEVEL_INFO));
           if (!Agent_vars->ctx)
-           { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "Ctx Init failed" );
+           { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Ctx Init failed" );
              sleep(2); continue;
            }
           Agent_vars->conn = xmpp_conn_new(Agent_vars->ctx);
           if (!Agent_vars->conn)
-           { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "Connection New failed" );
+           { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Connection New failed" );
              xmpp_ctx_free(Agent_vars->ctx); Agent_vars->ctx = NULL; sleep(2); continue;
            }
           xmpp_conn_set_sockopt_callback(Agent_vars->conn, xmpp_sockopt_cb_keepalive);
@@ -349,7 +349,7 @@ end_message:
           xmpp_conn_set_pass(Agent_vars->conn, Agent_vars->jabber_password);
           gint retour = xmpp_connect_client ( Agent_vars->conn, NULL, 0, Imsg_connexion_CB, Agent );
           if (retour != XMPP_EOK)
-           { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR,
+           { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR,
                    "Connexion failed with error %d", retour );
              Agent_vars->signed_off = TRUE;
              xmpp_disconnect(Agent_vars->conn);
