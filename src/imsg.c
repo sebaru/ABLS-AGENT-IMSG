@@ -173,12 +173,12 @@
        GList *Results = json_array_get_elements ( Json_get_array ( MapNode, "results" ) );
        if (nbr_results > 1)
         { GList *results = Results;
-          while(results)
+          while(results)                                            /* Si trop de resultat, on envoie les resultats possibles */
            { JsonNode *element = results->data;
-             gchar *thread_acronyme = Json_get_string ( element, "thread_acronyme" );
+             gchar *agent_acronyme = Json_get_string ( element, "agent_acronyme" );
              Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_INFO,
-                   "Map found for '%s' -> '%s'", from, thread_acronyme );
-             Imsg_send_message_to ( from, thread_acronyme );
+                   "Map found for '%s' -> '%s'", from, agent_acronyme );
+             Imsg_send_message_to ( from, agent_acronyme );
              results = g_list_next(results);
            }
         }
