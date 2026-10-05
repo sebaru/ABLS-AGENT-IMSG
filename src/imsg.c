@@ -284,7 +284,7 @@ end_message:
  /******************************************************************************************************************************/
  gint main ( gint argc, gchar *argv[] )
   { Config_add_parameter ( "jabber_id", "JABBER_ID", "XMPP JID", CONFIG_STRING );
-    Config_add_parameter ( "jabber_password", "PASS", "XMPP password", CONFIG_STRING );
+    Config_add_parameter ( "jabber_password", "PASSWD", "XMPP password", CONFIG_STRING );
 
     Agent = Agent_init ( argv[0], "imsg", ABLS_AGENT_IMSG_VERSION, sizeof(struct ABLS_IMSG_VARS), argc, argv );
     Agent_vars = Agent_get_vars ( Agent );
