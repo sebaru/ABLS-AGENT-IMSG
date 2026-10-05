@@ -39,8 +39,8 @@ Runtime XMPP/IMSG pour Abls-Habitat, migré du module historique `Watchdogd/Imsg
 
 Le runtime attend les paramètres standard ABLS d’un agent, ainsi que les éléments suivants :
 
-- `jabber_id` ou `jabberid`
-- `jabber_password` ou `password`
+- `jabber_id`
+- `jabber_password`
 - `agent_tech_id`
 - `api_url`, `domain_uuid`, `domain_secret`, `server_uuid`
 
