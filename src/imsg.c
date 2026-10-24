@@ -266,6 +266,7 @@ end_message:
   { if (status == XMPP_CONN_CONNECT)
      { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_NOTICE,
              "Account connected and %s secure", (xmpp_conn_is_secured (conn) ? "IS" : "IS NOT") );
+       Agent_send_comm_to_master ( Agent, TRUE );
        xmpp_handler_add ( Agent_vars->conn, Imsg_handle_message_CB, NULL, "message", NULL, NULL );
        xmpp_handler_add ( Agent_vars->conn, Imsg_handle_presence_CB, NULL, "presence", NULL, NULL );
        Imsg_set_presence ( "A votre écoute !" );
@@ -273,6 +274,7 @@ end_message:
      }
     else
      { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_NOTICE, "Account disconnected" );
+       Agent_send_comm_to_master ( Agent, FALSE );
        Agent_vars->signed_off = TRUE;
      }
   }
