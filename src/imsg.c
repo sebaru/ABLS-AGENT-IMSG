@@ -339,12 +339,12 @@ end_message:
           Agent_vars->ctx = xmpp_ctx_new(NULL, xmpp_get_default_logger(XMPP_LEVEL_INFO));
           if (!Agent_vars->ctx)
            { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Ctx Init failed" );
-             g_sleep( G_USEC_PER_SEC*2 ); continue;
+             g_usleep( G_USEC_PER_SEC*2 ); continue;
            }
           Agent_vars->conn = xmpp_conn_new(Agent_vars->ctx);
           if (!Agent_vars->conn)
            { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Connection New failed" );
-             xmpp_ctx_free(Agent_vars->ctx); Agent_vars->ctx = NULL; g_sleep( G_USEC_PER_SEC*2 ); continue;
+             xmpp_ctx_free(Agent_vars->ctx); Agent_vars->ctx = NULL; g_usleep( G_USEC_PER_SEC*2 ); continue;
            }
           xmpp_conn_set_sockopt_callback(Agent_vars->conn, xmpp_sockopt_cb_keepalive);
           xmpp_conn_set_jid (Agent_vars->conn, Agent_vars->jabber_id);
@@ -358,7 +358,7 @@ end_message:
              xmpp_conn_release(Agent_vars->conn);
              Agent_vars->conn = NULL;
              xmpp_ctx_free(Agent_vars->ctx); Agent_vars->ctx = NULL;
-             g_sleep( G_USEC_PER_SEC*2 );
+             g_usleep( G_USEC_PER_SEC*2 );
            }
         }
 
